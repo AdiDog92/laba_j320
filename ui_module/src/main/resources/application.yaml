@@ -1,0 +1,6 @@
+spring:
+  application:
+   name: ui_module
+
+server:
+  port: 8081
