@@ -9,7 +9,18 @@ public interface ClientService {
 
     Stream<ClientDto> findAllClients();
 
-		Optional<ClientDto> findClientById(Long clientId);
+    Optional<ClientDto> findClientById(Long clientId);
 
-		Optional<ClientDto> createClient(ClientDto clientDto);
+    Optional<ClientDto> createClient(ClientDto clientDto);
+
+    Optional<ClientDto> updateClient(Long clientId, ClientDto clientDto);
+
+    void deleteClient(Long clientId);
+
+    Stream<ClientDto> searchClients(
+            String clientName,
+            String type,
+            String address
+    );
+
 }
