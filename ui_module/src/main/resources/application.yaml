@@ -1,6 +1,10 @@
 spring:
   application:
-   name: ui_module
+    name: ui_module
 
 server:
   port: 8081
+
+backend-module:
+  base-url: http://localhost:8080/api
+  timeout: 3000
