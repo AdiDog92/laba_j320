@@ -7,9 +7,5 @@ spring:
     password: root
   jpa:
     show-sql: true
-  security:
-    user:
-      name: admin
-      password: admin
 server:
   port: 8080

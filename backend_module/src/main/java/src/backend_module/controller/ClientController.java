@@ -35,6 +35,17 @@ public class ClientController {
         return ResponseEntity.ok(clientService.findAllClients().toList());
     }
 
+    @GetMapping(value = "/search")
+    public ResponseEntity<List<ClientDto>> searchClients(
+            @RequestParam(value = "client_name", required
+                    = false) String clientName,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String address
+    ) {
+        log.info("Получен запрос на поиск клиентов по имени {}, типу и адресу {}", clientName, type, address);
+        return ResponseEntity.ok(clientService.searchClients(clientName, type, address).toList());
+    }
+
     @GetMapping("/{clientId}")
     public ResponseEntity<ClientDto> getClientById(
             @PathVariable Long clientId
@@ -56,7 +67,7 @@ public class ClientController {
 
         return clientService.createClient(clientDto)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.badRequest().build());
 
     }
 
@@ -81,14 +92,4 @@ public class ClientController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/search")
-    public ResponseEntity<List<ClientDto>> searchClients(
-            @RequestParam(value = "client_name", required
-                    = false) String clientName,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String address
-    ) {
-        log.info("Получен запрос на поиск клиентов по имени {}, типу и адресу {}", clientName, type, address);
-        return ResponseEntity.ok(clientService.searchClients(clientName, type, address).toList());
-    }
 }
