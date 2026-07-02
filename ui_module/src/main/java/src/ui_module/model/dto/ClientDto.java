@@ -1,0 +1,46 @@
+package src.ui_module.model.dto;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ClientDto {	
+
+	@JsonProperty("id")
+	private Long clientId;
+
+	@NotEmpty(message = "Имя клиента не может быть пустым")
+	@Size(max = 100, message = "Длинна не более 100 символов")
+	@Pattern(regexp = "^[а-яА-ЯёЁ \\.\\-]+$",
+			message = "Только русские буквы, дефис, точка, пробел")
+	@JsonProperty("client_name")
+	private String clientName;
+
+	@NotBlank(message = "Тип не может быть пустым")
+	@Pattern(regexp = "^(Юридическое лицо|Физическое лицо)$",
+			message = "Допустимые значения: «Юридическое лицо» или «Физическое лицо»\"")
+	private String type;
+	
+	private LocalDate added;
+	@Valid    
+	@NotEmpty(message = "Адреса не могут быть пустыми")
+	private List<AddressDto> addresses;
+
+
+}
