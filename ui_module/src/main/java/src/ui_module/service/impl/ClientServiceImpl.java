@@ -141,17 +141,97 @@ public class ClientServiceImpl implements ClientService {
 
 	@Override
 	public Optional<ClientDto> updateClient(Long clientId, ClientDto clientDto) {
-		return null;
+
+		try {
+			ClientDto updated = restClient.put()
+			.uri("/clients/{id}", clientId)
+			.body(clientDto)
+			.retrieve()
+			.onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+				int statusCode = res.getStatusCode().value();
+				log.warn("⚠️ Клиентская ошибка при создании: HTTP {}", statusCode);
+
+				if (statusCode == 400) {
+						// Специальная обработка валидации: читаем тело и парсим ошибку
+						try {
+								String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+								log.debug("📄 Тело ошибки валидации: {}", body);
+
+								ValidationErrorResponse validationError = new ObjectMapper()
+												.readValue(body, ValidationErrorResponse.class);
+
+								// Выбрасываем предметное исключение с деталями валидации
+								throw new ValidationException(
+												validationError.getMessage(),
+												validationError.getAllErrorMessages()
+								);
+						} catch (IOException | JacksonException e) {
+								log.error("❌ Не удалось распарсить ошибку валидации", e);
+								throw new ValidationException(
+												"Ошибка валидации",
+												List.of("Не удалось прочитать детали ошибки")
+								);
+						}
+				}
+
+				// Для 409 (Conflict) и 422 (Unprocessable) — не выбрасываем исключение,
+				// позволяем методу завершиться и вернуть Optional.empty()
+				if (statusCode == 409 || statusCode == 422) {
+						log.info("ℹ️ Статус {}: пользователь не создан (возможно, уже существует)", statusCode);
+						return; // Прерываем обработку, не выбрасывая исключение
+				}
+
+				// Все остальные 4xx — стандартная обработка
+				handleErrorResponse(req, res);
+		})
+.onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+.body(ClientDto.class);
+
+			return Optional.of(updated);
+		} catch (ValidationException | ExternalApiException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Ошибка при обновлении пользователя: {}", e);
+			throw new ExternalApiException(
+				"Ошибка при обновлении пользователя", 
+				null, 
+				null, 
+				e);
+		}
 	}
 	
 	@Override
 	public void deleteClient(Long clientId) {
-		return null;
+
+		log.info("Получен запрос на удаление пользователя с id: {}", clientId);
+
+		restClient.delete()
+		.uri("/clients/{id}", clientId)
+		.retrieve()
+		.onStatus(HttpStatusCode::is4xxClientError, this::handleErrorResponse)
+		.onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+		.body(Void.class);
+
+		log.info("Пользователь с id: {} успешно удален", clientId);
+
 	}
 
 	@Override
 	public Stream<ClientDto> searchClients(String clientName, String type, String address) {
-		return null;
+		log.info("Получен запрос на поиск пользователей по имени: {}, типу: {}, адресу: {}", clientName, type, address);
+
+		List<ClientDto> clients = restClient.get()
+		.uri("/clients/search?client_name={clientName}&type={type}&address={address}", clientName, type, address)
+		.retrieve()
+		.onStatus(HttpStatusCode::is4xxClientError, this::handleErrorResponse)
+		.onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+		.body(new ParameterizedTypeReference<List<ClientDto>>() {});
+
+		Stream<ClientDto> result = clients != null 
+		? clients.stream()
+		: Stream.empty();
+
+		return result;	
 	}
 
 	private void handleErrorResponse(HttpRequest request, ClientHttpResponse response) {
