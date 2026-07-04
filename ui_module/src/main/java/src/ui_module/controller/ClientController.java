@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.stereotype.Controller;
@@ -48,11 +48,32 @@ public class ClientController {
 
 	}
 
+	@GetMapping(value = "/clients/search")
+	public String searchClientsPage(Model model, 
+		@RequestParam(required = false) String clientName,
+		@RequestParam(required = false)  String type,
+		@RequestParam(required = false)  String address
+	) {
+		
+		List<ClientModel> clients = clientService.searchClients(clientName, type, address)
+		.map(clientDtoToModel)
+		.collect(Collectors.toList());
+		
+		model.addAttribute("clients", clients);
+		model.addAttribute("clientName", clientName);
+		model.addAttribute("type", type);
+		model.addAttribute("address", address);
+
+		log.info("Страница с поиском пользователей успешно открыта");
+
+		return "index";
+	}
+
 	@GetMapping(value = "/clients/create")
 	public String createClientPage(Model model) {
 		log.info("Открытие страницы с созданием пользователя");
 		model.addAttribute("client", new ClientModel());
-		return "create_client_page";
+		return "form_page";
 	}
 
 	@PostMapping(value = "/clients/create")
@@ -102,5 +123,79 @@ public class ClientController {
 
 			throw e;
 		}
+	}
+
+	@GetMapping(value = "/clients/edit/{id}")
+	public String editClientPage(
+		Model model,
+		@PathVariable Long id
+	) {
+
+		ClientDto clientDto = clientService.getClientById(id);
+
+		ClientModel clientModel = clientDtoToModel.apply(clientDto);
+
+		model.addAttribute("client", clientModel);
+
+		return "form_page";
+	}
+
+	@PostMapping(value = "/clients/edit/{id}")
+	public String editClient(Model model, 
+		@PathVariable Long id,
+		@RequestParam String clientName,
+		@RequestParam String type,
+		@RequestParam String ip,
+		@RequestParam String mac,
+		@RequestParam String modelName,
+		@RequestParam String address) {
+
+		ClientModel clientModel = ClientModel.builder()
+		.clientName(clientName)
+		.type(ClientTypeEnum.getClientType(type))
+		.addresses(List.of(AddressModel.builder()
+		.ip(ip)
+		.mac(mac)
+		.model(modelName)
+		.address(address)
+		.build()))
+		.build();
+
+		log.info("Модель пользователя успешно обновлена: {}", clientModel);
+
+		try {
+			ClientDto createdClient = clientModelToDto.apply(clientModel);
+
+			log.info("Модель пользователя успешно преобразована в DTO: {}", createdClient);
+
+			clientService.updateClient(id, createdClient);
+
+			log.info("Пользователь успешно обновлен: {}", createdClient);
+
+			return "redirect:/clients";
+		} catch (ValidationException e) {
+
+			log.error("Ошибка при обновлении пользователя: {}", e.getMessage());
+
+			model.addAttribute("error", e.getMessage());
+
+			return "error_page";
+
+		} catch (Exception e) {
+			log.error("непредвиденная ошибка при обновлении пользователя: {}", e.getMessage());
+
+			throw e;
+		}
+	}
+
+	@PostMapping(value = "/clients/delete/{id}")
+	public String deleteClient(Model model, 
+		@PathVariable Long id
+	) {
+		log.info("Получен запрос на удаление пользователя: {}", id);
+
+		clientService.deleteClient(id);
+
+		return "redirect:/clients";
 	}
 }
