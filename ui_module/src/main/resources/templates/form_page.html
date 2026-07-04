@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+	<head
+		th:replace="~{fragments/layout :: head((${client.id != null}) ? 'Редактирование клиента' : 'Создание клиента')}"
+	></head>
+	<body>
+		<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+		<main class="container pb-4">
+			<h1 class="h3 mb-4" th:text="${client.id != null} ? 'Редактирование клиента' : 'Создание клиента'">
+				Создание клиента
+			</h1>
+
+			<form
+				th:action="${client.id != null} ? @{/clients/edit/{id}(id=${client.id})} : @{/clients/create}"
+				method="post"
+				class="row g-3"
+			>
+				<div class="col-md-6">
+					<label class="form-label" for="clientName">Имя клиента</label>
+					<input
+						type="text"
+						class="form-control"
+						id="clientName"
+						name="clientName"
+						required
+						maxlength="100"
+						th:value="${client.clientName}"
+					/>
+				</div>
+				<div class="col-md-6">
+					<label class="form-label" for="type">Тип</label>
+					<select class="form-select" id="type" name="type" required>
+						<option value="" disabled th:selected="${client.type == null}">Выберите тип</option>
+						<option
+							value="Физическое лицо"
+							th:selected="${client.type != null and client.type.description == 'Физическое лицо'}"
+						>
+							Физическое лицо
+						</option>
+						<option
+							value="Юридическое лицо"
+							th:selected="${client.type != null and client.type.description == 'Юридическое лицо'}"
+						>
+							Юридическое лицо
+						</option>
+					</select>
+				</div>
+
+				<div class="col-12">
+					<h2 class="h5 mt-2">Адрес устройства</h2>
+				</div>
+				<div class="col-md-6">
+					<label class="form-label" for="ip">IP-адрес</label>
+					<input
+						type="text"
+						class="form-control"
+						id="ip"
+						name="ip"
+						required
+						th:value="${client.addresses != null and !client.addresses.isEmpty() ? client.addresses[0].ip : ''}"
+					/>
+				</div>
+				<div class="col-md-6">
+					<label class="form-label" for="mac">MAC-адрес</label>
+					<input
+						type="text"
+						class="form-control"
+						id="mac"
+						name="mac"
+						required
+						th:value="${client.addresses != null and !client.addresses.isEmpty() ? client.addresses[0].mac : ''}"
+					/>
+				</div>
+				<div class="col-md-6">
+					<label class="form-label" for="modelName">Модель устройства</label>
+					<input
+						type="text"
+						class="form-control"
+						id="modelName"
+						name="modelName"
+						required
+						maxlength="100"
+						th:value="${client.addresses != null and !client.addresses.isEmpty() ? client.addresses[0].model : ''}"
+					/>
+				</div>
+				<div class="col-md-6">
+					<label class="form-label" for="address">Адрес</label>
+					<input
+						type="text"
+						class="form-control"
+						id="address"
+						name="address"
+						required
+						maxlength="200"
+						th:value="${client.addresses != null and !client.addresses.isEmpty() ? client.addresses[0].address : ''}"
+					/>
+				</div>
+
+				<div class="col-12 d-flex gap-2">
+					<button type="submit" class="btn btn-primary">Сохранить</button>
+					<a class="btn btn-outline-secondary" th:href="@{/clients}">Отмена</a>
+				</div>
+			</form>
+		</main>
+
+		<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+	</body>
+</html>

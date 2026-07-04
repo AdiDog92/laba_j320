@@ -1,9 +1,19 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-	</head>
-	<body></body>
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ошибка')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container pb-4">
+	<div class="alert alert-danger" role="alert">
+		<h1 class="h4 alert-heading">Ошибка</h1>
+		<p class="mb-0" th:text="${error} ?: 'Произошла непредвиденная ошибка.'">
+			Произошла непредвиденная ошибка.
+		</p>
+	</div>
+	<a class="btn btn-primary" th:href="@{/clients}">На главную</a>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
 </html>

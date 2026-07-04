@@ -2,10 +2,12 @@ spring:
   application:
     name: backend_module
   datasource:
-    url: jdbc:postgresql://localhost:5433/laba_j200
+    url: jdbc:postgresql://localhost:5433/laba_j320
     username: postgres
     password: root
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update
 server:
   port: 8080

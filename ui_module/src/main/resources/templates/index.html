@@ -1,9 +1,86 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-	</head>
-	<body></body>
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Клиенты')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container pb-4">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h1 class="h3 mb-0">Клиенты</h1>
+		<a class="btn btn-primary" th:href="@{/clients/create}">Создать</a>
+	</div>
+
+	<form class="row g-3 mb-4" th:action="@{/clients/search}" method="get">
+		<div class="col-md-4">
+			<label class="form-label" for="clientName">Имя клиента</label>
+			<input type="text" class="form-control" id="clientName" name="clientName"
+			       maxlength="100" th:value="${clientName}"/>
+		</div>
+		<div class="col-md-3">
+			<label class="form-label" for="type">Тип</label>
+			<select class="form-select" id="type" name="type">
+				<option value="" th:selected="${type == null or type == ''}">Все</option>
+				<option value="Физическое лицо" th:selected="${type == 'Физическое лицо'}">Физическое лицо</option>
+				<option value="Юридическое лицо" th:selected="${type == 'Юридическое лицо'}">Юридическое лицо</option>
+			</select>
+		</div>
+		<div class="col-md-3">
+			<label class="form-label" for="address">Адрес</label>
+			<input type="text" class="form-control" id="address" name="address"
+			       maxlength="200" th:value="${address}"/>
+		</div>
+		<div class="col-md-2 d-flex align-items-end gap-2">
+			<button type="submit" class="btn btn-outline-primary w-100">Найти</button>
+			<a class="btn btn-outline-secondary w-100" th:href="@{/clients}">Сброс</a>
+		</div>
+	</form>
+
+	<div th:if="${clients == null or clients.isEmpty()}" class="alert alert-info mb-0">
+		Клиенты не найдены.
+	</div>
+
+	<div th:unless="${clients == null or clients.isEmpty()}" class="table-responsive">
+		<table class="table table-striped table-hover align-middle">
+			<thead class="table-light">
+			<tr>
+				<th>ID</th>
+				<th>Имя</th>
+				<th>Тип</th>
+				<th>Дата добавления</th>
+				<th>Адреса</th>
+				<th class="text-end">Действия</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr th:each="client : ${clients}">
+				<td th:text="${client.id}">1</td>
+				<td th:text="${client.clientName}">Иванов</td>
+				<td th:text="${client.type != null ? client.type.description : ''}">Физическое лицо</td>
+				<td th:text="${client.added}">2026-01-01</td>
+				<td>
+					<ul class="list-unstyled mb-0" th:if="${client.addresses != null and !client.addresses.isEmpty()}">
+						<li th:each="addr : ${client.addresses}">
+							<span class="text-muted" th:text="${addr.ip + ' · ' + addr.mac}">192.168.0.1</span>
+							<div th:text="${addr.model + ' — ' + addr.address}">Router — ул. Ленина, 1</div>
+						</li>
+					</ul>
+					<span th:if="${client.addresses == null or client.addresses.isEmpty()}" class="text-muted">—</span>
+				</td>
+				<td class="text-end text-nowrap">
+					<a class="btn btn-sm btn-outline-secondary"
+					   th:href="@{/clients/edit/{id}(id=${client.id})}">Редактировать</a>
+					<form class="d-inline" th:action="@{/clients/delete/{id}(id=${client.id})}"
+					      method="post"
+					      onsubmit="return confirm('Удалить клиента?');">
+						<button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+					</form>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
 </html>
